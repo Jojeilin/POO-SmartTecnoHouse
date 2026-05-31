@@ -1,15 +1,16 @@
-package modelo;
-
-// Usamos 'abstract' para que no se puedan crear objetos "Actuador" genéricos.
-// Usamos 'implements IDispositivo' para heredar el contrato de identificación de la casa.
+/**
+ * Clase abstracta que define el comportamiento común de todos los actuadores (aparatos que reciben órdenes).
+ * Implementa IDispositivo para cumplir con el contrato mínimo del sistema domótico.
+ */
 public abstract class Actuador implements IDispositivo {
 
-    // Atributos comunes a cualquier aparato que realiza una acción
     protected String id;
     protected String nombre;
-    protected String estado; // Guardará textos como "ON", "OFF", "HIGH", "SUBIDA", etc.
+    protected String estado; // Almacena el estado actual (ej. "ON", "OFF", "SUBIDA", "BAJADA")
 
-    // Constructor común: todos los actuadores necesitan identificarse y empezar en un estado conocido
+    /**
+     * Constructor para inicializar los datos básicos de cualquier actuador.
+     */
     public Actuador(String id, String nombre, String estadoInicial) {
         this.id = id;
         this.nombre = nombre;
@@ -30,23 +31,36 @@ public abstract class Actuador implements IDispositivo {
 
     @Override
     public String getEstadoActual() {
-        // Devuelve el estado en texto plano para que la interfaz gráfica lo muestre directamente
         return this.estado;
     }
 
-    // --- MÉTODOS POLIMÓRFICOS PROPIOS DE LOS ACTUADORES ---
+    // --- GESTIÓN DE ACCIONES Y LOGGING ---
 
     /**
-     * MÉTODO POLIMÓRFICO: Cada aparato reacciona de forma única a los comandos.
-     * Una bombilla entenderá "ON", pero un ventilador necesitará "HIGH" o "LOW".
-     * Al ser abstract, delegamos la validación y ejecución a los hijos concretos.
+     * Método público principal para ejecutar un comando.
+     * Coordina de forma transparente el procesamiento de la acción y el registro automático en el log.
+     * Se declara 'final' para que los hijos no puedan romper esta secuencia de control.
      */
-    public abstract void ejecutarAccion(String accion);
+    public final void ejecutarAccion(String accion) {
+        String estadoAnterior = this.estado;
+
+        // Delegamos en el método protegido para que el hijo específico cambie el estado
+        procesarComandoEspecifico(accion);
+
+        // Si tras procesar el comando el estado ha cambiado, disparamos el servicio de Logging (Singleton)
+        if (!estadoAnterior.equals(this.estado)) {
+            LogService.getInstancia().registrarCambio(this, accion);
+        }
+    }
 
     /**
-     * MÉTODO POLIMÓRFICO: Devuelve una lista con las palabras clave válidas para este aparato.
-     * Es extremadamente útil para que la GUI (Vista) cree menús desplegables automáticos
-     * con las opciones reales de cada dispositivo.
+     * MÉTODO POLIMÓRFICO INTERNO: Cada actuador concreto (Bombilla, Persiana, etc.)
+     * implementará aquí sus propias validaciones y reglas para cambiar la variable 'this.estado'.
+     */
+    protected abstract void procesarComandoEspecifico(String accion);
+
+    /**
+     * MÉTODO POLIMÓRFICO: Devuelve la lista de comandos válidos que acepta el dispositivo.
      */
     public abstract String[] getAccionesPosibles();
 }

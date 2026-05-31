@@ -12,8 +12,7 @@ public class ActuadorBombilla extends Actuador {
         return new String[]{"ON", "OFF"};
     }
 
-    @Override
-    public void ejecutarAccion(String accion) {
+    @Override protected void procesarComandoEspecifico {
         // Validamos que la acción recibida sea una de las permitidas
         if (accion.equalsIgnoreCase("ON") || accion.equalsIgnoreCase("OFF")) {
             this.estado = accion.toUpperCase();

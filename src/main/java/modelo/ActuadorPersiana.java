@@ -13,7 +13,7 @@ public class ActuadorPersiana extends Actuador {
     }
 
     @Override
-    public void ejecutarAccion(String accion) {
+    protected void procesarComandoEspecifico {
         if (accion.equalsIgnoreCase("SUBIR")) {
             this.estado = "SUBIDA";
         } else if (accion.equalsIgnoreCase("BAJAR")) {
